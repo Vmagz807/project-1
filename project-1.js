@@ -19,7 +19,6 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
     this.lastUpdated = "";
     this.hexCode = "";
     this.icon = "";
-    this.link = "";
     this.items = [];
     this.baseUrl = "";
   }
@@ -37,7 +36,6 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
       lastUpdated: { type: String },
       hexCode: { type: String },
       icon: { type: String },
-      link: { type: String },
       items: { type: Array },
       baseUrl: { type: String }
     };
@@ -100,10 +98,10 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
       
       .cards-container {
         display: grid;
-        grid-template-columns: repeat(4, 1fr); /* Auto-fit columns */
-        gap: 20px; /* Space between cards */
-        width: 100%; /* Ensure cards stretch to fill the grid cells */
-        box-sizing: border-box; /* Ensure padding doesn't cause overflow */
+        grid-template-columns: repeat(4, 1fr); /*This forces the auto-fit to not go past 4 cards in a row*/
+        gap: 20px; 
+        width: 100%; 
+        box-sizing: border-box; 
       }
 
       .card {
@@ -115,6 +113,7 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
         border-radius: var(--ddd-radius-sm);
       }
 
+      /*These auto-fit the amount of cards per the size of the screen.*/
       @media (max-width: 1024px) {
         .cards-container {
           grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Automatically adjust */
@@ -133,7 +132,6 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
         }
       }
 
-      
       .card h3 {
         font-size: 18px;
         margin-bottom: var(--ddd-spacing-3);
@@ -155,6 +153,13 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
       
       .card a:hover {
         color: #0056b3; 
+      }
+      
+      .icon {
+        display: inline-block;
+        width: 20px; 
+        height: 20px; 
+        margin-right: 5px; 
       }
     `];
   }
@@ -188,12 +193,12 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
               // Accessing metadata properties and setting default values if none are found in /site.json
               this.name = data.title || "Default Site Name";
               this.description = data.description || "Default description.";
-              this.logo = data.metadata.site.logo || "";
+              this.logo = data.metadata.site.logo || "project-1/defaultLogo.png";
               this.theme = data.metadata.theme.element || "Default theme";
               this.created = data.metadata.site.created || "Not specified";
               this.lastUpdated = data.metadata.site.updated || "Not specified";
               this.hexCode = data.metadata.theme.variables.hexCode || "#000000"; 
-              this.icon = data.metadata.theme.variables.icon || "";
+              this.icon = data.metadata.icon || "";
               this.items = data.items || [];
               
           }
@@ -219,7 +224,7 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
 
       <h1>Overview</h1>
 
-      <img src = "${this.logo}"/>
+      <img src = "${this.baseUrl}/${this.logo}"/>
       <h2>${this.name}</h2>
       <p>${this.description}</p>
 
@@ -227,7 +232,9 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
       <p><strong>Created:</strong> ${this.created}</p>
       <p><strong>Last Updated:</strong> ${this.lastUpdated}</p>
       <p><strong>Hex Code:</strong> ${this.hexCode}</p>
-      <p><strong>Icon:</strong> <img src = "${this.icon}"/></p>
+      <p><strong>Icon:</strong> 
+        <img class="icon" src="${this.baseUrl}/${this.icon}"/>
+      </p>
     </div>
 
 
@@ -237,7 +244,7 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
 
         <div class="card">
 
-          <img src = "${this.icon}"/>
+          <img class="icon" src = "${this.baseUrl}/${this.icon}"/>
           <h3>${item.title}</h3>
           <p>${item.description}</p>
 
