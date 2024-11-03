@@ -99,21 +99,40 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
       }
       
       .cards-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr); /* Auto-fit columns */
+        gap: 20px; /* Space between cards */
+        width: 100%; /* Ensure cards stretch to fill the grid cells */
+        box-sizing: border-box; /* Ensure padding doesn't cause overflow */
       }
-      
+
       .card {
-        background-color: var(--ddd-theme-default-white) ; 
-        border: 1px solid #e1e1e1; 
+        background-color: var(--ddd-theme-default-white);
+        border: 1px solid #e1e1e1;
         padding: var(--ddd-spacing-5);
-        width: 250px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         text-align: left;
         border-radius: var(--ddd-radius-sm);
       }
+
+      @media (max-width: 1024px) {
+        .cards-container {
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Automatically adjust */
+        }
+      }
+
+      @media (max-width: 768px) {
+        .cards-container {
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Automatically adjust */
+        }
+      }
+
+      @media (max-width: 480px) {
+        .cards-container {
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Automatically adjust */
+        }
+      }
+
       
       .card h3 {
         font-size: 18px;
