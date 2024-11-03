@@ -188,6 +188,7 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
     <div class="input-container">
 
       <!--Input box where user enters URL-->
+      <div>HAX Url</div>
       <input id="input" placeholder="Enter a HAX website" /> 
       
       <!-- When Analyze is clicked, search for new metadata relating to URL -->
