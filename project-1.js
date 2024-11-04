@@ -184,8 +184,9 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
     // Ensure URL ends with /site.json
     if (siteUrl.endsWith('/site.json')) {
         fetch(siteUrl)
-        .then(response => response.json()) // Parse the JSON from the response
-        .then(data => {
+        
+        const response = await fetch(siteUrl);
+        const data = await response.json();
         
           // Ensure the structure is as expected
           if (data.metadata) {
@@ -202,7 +203,7 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
               this.items = data.items || [];
               
           }
-      });
+      
     }
   }
 
