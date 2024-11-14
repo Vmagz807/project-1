@@ -1,11 +1,14 @@
 import { LitElement, html, css } from "lit";
 import { DDDSuper } from "@haxtheweb/d-d-d/d-d-d.js";
 import { I18NMixin } from "@haxtheweb/i18n-manager/lib/I18NMixin.js";
-
+import { ifDefined } from "Lit/directives/if-defined.js";
+//Simple icon stuff
+import '@haxtheweb/hax-iconset/hax-iconset.js';
+import '@haxtheweb/simple-icon/simple-icon.js';
 export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
 
   static get tag() {
-    return "project-1";
+    return "search-hax";
   }
 
   constructor() {
@@ -33,11 +36,11 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
       logo: { type: String },
       theme: { type: String },
       created: { type: String },
-      lastUpdated: { type: String },
+      lastUpdated: { type: String, attribute: 'updated' },
       hexCode: { type: String },
       icon: { type: String },
       items: { type: Array },
-      baseUrl: { type: String }
+      baseUrl: { type: String, attribute: 'base-url' }
     };
   }
 
@@ -92,8 +95,7 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
       }
       
       .overview img {
-        max-width: 100px;
-        margin-bottom: var(--ddd-spacing-5);
+        max-width: 300px;
       }
       
       .cards-container {
@@ -155,6 +157,10 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
         color: #0056b3; 
       }
       
+      .card img{
+        width: 275px;
+        height: auto;
+      }
       .icon {
         display: inline-block;
         width: 20px; 
@@ -166,7 +172,22 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
 
   // Handle input changes and trigger JSON fetch
   inputChanged() {
-    const siteUrl = this.shadowRoot.getElementById('input').value.trim(); // Get value from input
+    let siteUrl = this.shadowRoot.getElementById('input').value.trim(); // Gets value from user input
+
+    // Ensure URL starts with 'https://', if not it adds it on
+    if (!siteUrl.startsWith('https://')) {
+      siteUrl = 'https://' + siteUrl;
+    }
+
+    // Ensure URL ends with '/site.json', if not it adds it on
+    if (!siteUrl.endsWith('/site.json')) {
+      siteUrl = siteUrl + '/site.json';
+    }
+
+    //If user inputs URL ending with '/' then remove it so then slashes are not doubled
+    if (siteUrl.endsWith('/')) {
+      siteUrl = siteUrl.slice(0, -1);
+    }
 
     this.baseUrl = siteUrl.replace('/site.json', '');
     if (siteUrl) {
@@ -177,34 +198,45 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
       alert("Please enter a valid URL."); // Alert if input is empty
     }
   }
-  
-  //Fetching data from /site.json file 
-  async fetchSiteData(siteUrl) {
 
-    // Ensure URL ends with /site.json
-    if (siteUrl.endsWith('/site.json')) {
-        fetch(siteUrl)
-        
-        const response = await fetch(siteUrl);
-        const data = await response.json();
-        
-          // Ensure the structure is as expected
-          if (data.metadata) {
-
-              // Accessing metadata properties and setting default values if none are found in /site.json
-              this.name = data.title || "Default Site Name";
-              this.description = data.description || "Default description.";
-              this.logo = data.metadata.site.logo || "project-1/defaultLogo.png";
-              this.theme = data.metadata.theme.element || "Default theme";
-              this.created = data.metadata.site.created || "Not specified";
-              this.lastUpdated = data.metadata.site.updated || "Not specified";
-              this.hexCode = data.metadata.theme.variables.hexCode || "#000000"; 
-              this.icon = data.metadata.icon || "";
-              this.items = data.items || [];
-              
-          }
-      
+  // This method triggers inputChanged when the user clicks enter on the keyboard
+  handleKeyPress(event) {
+    if (event.key === 'Enter') {
+      this.inputChanged();
     }
+  }
+
+  getImg(item){
+    let images = item.metadata.images;
+    if(images){
+      if(images.length > 0){
+        return(this.baseUrl+images[0]);
+      }
+      else{
+        return '';
+      }
+    }
+  }
+
+  // Fetching data from /site.json file 
+  async fetchSiteData(siteUrl) {
+      const response = await fetch(siteUrl);
+      const data = await response.json();
+
+      // Ensure the structure is as expected
+      if (data) {
+        
+        // Accessing metadata properties and setting default values if none are found in /site.json
+        this.name = data.title || "Default Site Name";
+        this.description = data.description || "Default description.";
+        this.logo = data.metadata.site.logo || "project-1/defaultLogo.png";
+        this.theme = data.metadata.theme.element || "Default theme";
+        this.created = new Date(parseInt(data.metadata.site.created)*1000).toLocaleDateString() || "Not specified";
+        this.lastUpdated = new Date(parseInt(data.metadata.site.updated)*1000).toLocaleDateString() || "Not specified";
+        this.hexCode = data.metadata.theme.variables.hexCode || "#000000"; 
+        this.icon = data.metadata.theme.variables.icon;
+        this.items = data.items || [];
+      }
   }
 
   // Lit render the HTML
@@ -212,8 +244,8 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
     return html`
     <div class="input-container">
 
-      <!--Input box where user enters URL-->
-      <input id="input" placeholder="Enter a HAX website" /> 
+      <!--If user clicks enter on keyboard then use analyze button-->
+      <input id="input" @keypress="${this.handleKeyPress}" placeholder="Enter a HAX website" /> 
       
       <!-- When Analyze is clicked, search for new metadata relating to URL -->
       <button @click="${this.inputChanged}">Analyze</button> 
@@ -225,17 +257,21 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
 
       <h1>Overview</h1>
 
-      <img src = "${this.baseUrl}/${this.logo}"/>
-      <h2>${this.name}</h2>
-      <p>${this.description}</p>
+      <img ?hidden="${this.logo === ''}" src = "${this.baseUrl}/${this.logo}"/>
+      <h2>
+        <span class="icon" ?hidden="${this.icon === ''}" >
+          <simple-icon icon="${this.icon}"></simple-icon>
+        </span> 
+        ${this.name}
+      </h2>
+      
+      <p><strong>Description: </strong>${this.description}</p>
 
-      <p><strong>Theme:</strong> ${this.theme}</p>
-      <p><strong>Created:</strong> ${this.created}</p>
-      <p><strong>Last Updated:</strong> ${this.lastUpdated}</p>
-      <p><strong>Hex Code:</strong> ${this.hexCode}</p>
-      <p><strong>Icon:</strong> 
-        <img class="icon" src="${this.baseUrl}/${this.icon}"/>
-      </p>
+      <p><strong>Theme: </strong> ${this.theme}</p>
+      <p><strong>Created: </strong> ${this.created}</p>
+      <p><strong>Last Updated: </strong> ${this.lastUpdated}</p>
+      <p><strong>Hex Code: </strong> ${this.hexCode}</p>
+      
     </div>
 
 
@@ -245,11 +281,11 @@ export class Project1 extends DDDSuper(I18NMixin(LitElement)) {
 
         <div class="card">
 
-          <img class="icon" src = "${this.baseUrl}/${this.icon}"/>
+          <img src="${ifDefined(this.getImg(item))}">
           <h3>${item.title}</h3>
-          <p>${item.description}</p>
+          <p><strong>Description:</strong>${item.description}</p>
 
-          <p><strong>Last updated:</strong> ${item.metadata.updated || 'N/A'}</p>
+          <p><strong>Last updated:</strong> ${new Date(parseInt(item.metadata.updated)*1000).toLocaleDateString()}</p>
           <p><strong>Slug:</strong> ${item.slug}</p>
 
           <a href="${this.baseUrl}/${item.slug}" target="_blank">Open Content</a>
